@@ -48,19 +48,19 @@ set<int> closure[N];
 // int tot;               // total no. of states in dfa
 void PrintNFA()
 {
-    cout << "\nNFA without epsilon moves:\n";
-    cout << "============================\n";
-    cout << "Q\t\tSymbols\n";
-
+    // cout << "\nNFA without epsilon moves:\n";
+    // cout << "============================\n";
+    // cout << "Q\t\tSymbols\n";
+    //NFA transition table
     for (int i = 0; i < n; i++)
     {
-        cout << "Q" << i << "\t";
+        // cout << "Q" << i << "\t";
         for (int j = 1; j <= m; j++)
         {
-            cout << "{";
+            // cout << "{";
             for (int ii : nt1[i][j])
-                cout << ii;
-            cout << "}\t";
+                cout << ii << " ";
+            // cout << "}\t";
         }
         cout << endl;
     }
@@ -101,45 +101,45 @@ void ToNFA()
     freopen("input.in", "r", stdin);
     freopen("output.out", "w", stdout);
     freopen("inputforDFA.out", "w", stdout);
-    cout << "Number. of states: \n";
-    cin >> n;
-    cout << "Number. of input symbols: \n";
-    cin >> m;
-    cout << "Enter transitions:\n\n";
+    cin >> n; //Number. of states
+    cin >> m; //Number. of input symbols
 
     // Enter Transition table
     for (int i = 0; i < n; i++)
     {
-        cout << "State " << i << endl;
+        // cout << "State " << i << endl;
+        //Stata number [i]
         for (int j = 0; j <= m; j++)
         {
 
-            cout << "\tNumber of transitions for ";
-            if (j == 0)
-                cout << "eps";
-            else
-                cout << char(j + 'a' - 1);
-            cout << ": ";
+            // cout << "\tNumber of transitions for ";
+            // Number of transitions
+            // if (j == 0)
+            //     cout << "eps";
+            // else
+            //     cout << char(j + 'a' - 1);
+            // cout << ": ";
+            //if j == 0 eps else numberstate
             int temp;
             cin >> temp;
             nt[i][j].resize(temp);
-            if (temp == 0)
-            {
-            }
-            else if (temp == 1)
-            {
-                cout << "\tEnter the state: ";
-            }
-            else
-            {
-                cout << "\tEnter the " << temp << " states: ";
-            }
+            // if (temp == 0)
+            // {
+            // }
+            // else if (temp == 1)
+            // {
+            //     cout << "\tEnter the state: ";
+            // }
+            // else
+            // {
+            //     cout << "\tEnter the " << temp << " states: ";
+            // }
             for (int k = 0; k < nt[i][j].size(); k++)
             {
                 cin >> nt[i][j][k];
             }
         }
-        cout << endl;
+        // cout << endl;
     }
 
     // Finding epsilon closure for each state
