@@ -1,4 +1,10 @@
 
+/**
+ * @Author: Mahmoud Skafi
+ * @Github:https://github.com/Mahmoud-Skafi/enfa_to_dfa
+ * @Conversion (e-NFA) to DFA
+**/
+
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -10,7 +16,6 @@
 #include <vector>
 #include <string>
 #include <cstring>
-#include <cmath>
 #include <cstdio>
 #define _CRT_SECURE_NO_DEPRECATE
 #include <stdio.h>
@@ -37,109 +42,81 @@ typedef tuple<int, int, int> tiii;
 const int maxn = 1e5 + 5;
 using namespace std;
 #define pb push_back
+
 const int N = 109;
 int n, m;
-vector<int> nt[N][N], nt1[N][N];
+vi nt[N][N], nt1[N][N];
 set<int> closure[N];
 
-// vector<int> nta[N][N]; // stores the nfa table
-// int dt[N][N];          // stores the dfa table with entries into ds
-// vector<int> ds[N];     // stores the label of dfa state (union of nfa states)
-// int tot;               // total no. of states in dfa
+vi nta[N][N]; // stores the nfa table
+int dt[N][N]; // stores the dfa table with entries into ds
+vi ds[N];     // stores the label of dfa state (union of nfa states)
+int tot;      // total no. of states in dfa
 void PrintNFA()
 {
-    // cout << "\nNFA without epsilon moves:\n";
-    // cout << "============================\n";
-    // cout << "Q\t\tSymbols\n";
-    //NFA transition table
+    cout << "\n NFA Table:\n";
+    cout << "================================\n";
+    // NFA transition table
     for (int i = 0; i < n; i++)
     {
-        // cout << "Q" << i << "\t";
+        cout << "Q" << i << "\t";
         for (int j = 1; j <= m; j++)
         {
-            // cout << "{";
+            cout << "[";
             for (int ii : nt1[i][j])
-                cout << ii << " ";
-            // cout << "}\t";
+                cout << ii << "";
+            cout << "]\t";
         }
         cout << endl;
     }
     cout << endl;
 }
-// void ToDFA()
-// {
-//     cout << "\n DFA Table:\n";
-//     cout << "================\n";
-//     cout << "Q\t";
-//     for (int j = 0; j < m; j++)
-//     {
-//         cout << j << "\t";
-//     }
-//     cout << endl;
-//     for (int i = 0; i < tot; i++)
-//     {
-//         cout << "[";
-//         for (int k = 0; k < ds[i].size(); k++)
-//             cout << ds[i][k];
-//         cout << "]\t";
-//         for (int j = 0; j < m; j++)
-//         {
-//             cout << "[";
-//             for (int k = 0; k < ds[dt[i][j]].size(); k++)
-//             {
-//                 cout << ds[dt[i][j]][k];
-//             }
-//             cout << "]\t";
-//         }
-//         cout << endl;
-//     }
-//     cout << endl;
-// }
+void PrintDFA()
+{
+    cout << "\n DFA Table:\n";
+    cout << "===============================\n";
+    for (int i = 0; i < tot; i++)
+    {
+        cout << "Q" << i << "\t";
+        cout << "[";
+        for (int k = 0; k < ds[i].size(); k++)
+            cout << ds[i][k];
+        cout << "]\t";
+
+        for (int j = 0; j < m; j++)
+        {
+            cout << "[";
+            for (int k = 0; k < ds[dt[i][j]].size(); k++)
+            {
+                cout << ds[dt[i][j]][k];
+            }
+            cout << "]\t";
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
 
 void ToNFA()
 {
-    freopen("input.in", "r", stdin);
-    freopen("output.out", "w", stdout);
-    freopen("inputforDFA.out", "w", stdout);
+
     cin >> n; //Number. of states
     cin >> m; //Number. of input symbols
 
     // Enter Transition table
     for (int i = 0; i < n; i++)
     {
-        // cout << "State " << i << endl;
         //Stata number [i]
         for (int j = 0; j <= m; j++)
         {
-
-            // cout << "\tNumber of transitions for ";
-            // Number of transitions
-            // if (j == 0)
-            //     cout << "eps";
-            // else
-            //     cout << char(j + 'a' - 1);
-            // cout << ": ";
-            //if j == 0 eps else numberstate
             int temp;
-            cin >> temp;
+            cin >> temp; // Number of transitions
             nt[i][j].resize(temp);
-            // if (temp == 0)
-            // {
-            // }
-            // else if (temp == 1)
-            // {
-            //     cout << "\tEnter the state: ";
-            // }
-            // else
-            // {
-            //     cout << "\tEnter the " << temp << " states: ";
-            // }
             for (int k = 0; k < nt[i][j].size(); k++)
             {
                 cin >> nt[i][j][k];
             }
         }
-        // cout << endl;
     }
 
     // Finding epsilon closure for each state
@@ -191,93 +168,97 @@ void ToNFA()
 
     PrintNFA();
 }
-// void ToDFA()
-// {
-//     freopen("inputforDFA.out", "r", stdin);
-//     freopen("output.out", "w", stdout);
-
-//     // input the count of transitions
-//     for (int i = 0; i < n; i++)
-//     {
-//         for (int j = 0; j < m; j++)
-//         {
-//             int sz;
-//             cin >> sz;
-//             nt[i][j].resize(sz);
-//         }
-//     }
-
-//     // input the actual nfa transition table
-//     for (int i = 0; i < n; i++)
-//     {
-//         for (int j = 0; j < m; j++)
-//         {
-//             for (int k = 0; k < nt[i][j].size(); k++)
-//             {
-//                 cin >> nt[i][j][k];
-//             }
-//         }
-//     }
-
-//     queue<int> q;
-
-//     // add {0} as the initial state
-//     vector<int> v;
-//     v.pb(0);
-//     q.push(0);
-//     ds[tot++] = v;
-
-//     // keep adding new states reachable from initial state
-//     while (!q.empty())
-//     {
-
-//         int top = q.front();
-//         q.pop();
-
-//         for (int j = 0; j < m; j++)
-//         {
-//             vector<int> cur;
-//             for (int i = 0; i < ds[top].size(); i++)
-//             {
-//                 for (int k = 0; k < nt[ds[top][i]][j].size(); k++)
-//                 {
-//                     cur.pb(nt[ds[top][i]][j][k]);
-//                 }
-//             }
-
-//             sort(cur.begin(), cur.end());
-//             cur.resize(unique(cur.begin(), cur.end()) - cur.begin());
-
-//             // check if this state is encountered before
-//             int prev = -1;
-//             for (int i = 0; i < tot; i++)
-//             {
-//                 if (ds[i] == cur)
-//                 {
-//                     prev = i;
-//                     break;
-//                 }
-//             }
-//             if (prev == -1)
-//             {
-//                 ds[tot] = cur;
-//                 q.push(tot);
-//                 dt[top][j] = tot;
-//                 tot++;
-//             }
-//             else
-//             {
-//                 dt[top][j] = prev;
-//             }
-//         }
-//     }
-
-//     ToDFA();
-// }
-int main()
+void ToDFA()
 {
 
+    // set no of states ans symbols
+    n = 3, m = 2;
+    // input the count of transitions
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < m; j++)
+        {
+            int sz;
+            cin >> sz;
+            nta[i][j].resize(sz);
+        }
+    }
+
+    // input the actual nfa transition table
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < m; j++)
+        {
+            for (int k = 0; k < nta[i][j].size(); k++)
+            {
+                cin >> nta[i][j][k];
+            }
+        }
+    }
+
+    queue<int> q;
+
+    // add {0} as the initial state
+    vector<int> v;
+    v.pb(0);
+    q.push(0);
+    ds[tot++] = v;
+
+    // keep adding new states reachable from initial state
+    while (!q.empty())
+    {
+
+        int top = q.front();
+        q.pop();
+
+        for (int j = 0; j < m; j++)
+        {
+            vector<int> cur;
+            for (int i = 0; i < ds[top].size(); i++)
+            {
+                for (int k = 0; k < nta[ds[top][i]][j].size(); k++)
+                {
+                    cur.pb(nta[ds[top][i]][j][k]);
+                }
+            }
+
+            sort(cur.begin(), cur.end());
+            cur.resize(unique(cur.begin(), cur.end()) - cur.begin());
+
+            // check if this state is encountered before
+            int prev = -1;
+            for (int i = 0; i < tot; i++)
+            {
+                if (ds[i] == cur)
+                {
+                    prev = i;
+                    break;
+                }
+            }
+            if (prev == -1)
+            {
+                ds[tot] = cur;
+                q.push(tot);
+                dt[top][j] = tot;
+                tot++;
+            }
+            else
+            {
+                dt[top][j] = prev;
+            }
+        }
+    }
+
+    PrintDFA();
+}
+int main()
+{
+    freopen("input.in", "r", stdin);
+    freopen("output.out", "w", stdout);
+    // freopen("inputDFA.out", "w", stdout);
+
     ToNFA();
+    ToDFA();
     fclose(stdout);
     return 0;
 }
