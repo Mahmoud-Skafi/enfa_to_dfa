@@ -1,10 +1,8 @@
-
 /**
  * @Author: Mahmoud Skafi
  * @Github:https://github.com/Mahmoud-Skafi/enfa_to_dfa
  * @Conversion (e-NFA) to DFA
 **/
-
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -17,19 +15,17 @@
 #include <string>
 #include <cstring>
 #include <cstdio>
-#define _CRT_SECURE_NO_DEPRECATE
-#include <stdio.h>
-#include <stdlib.h>
 using namespace std;
-#define IOS                           \
-    ios_base::sync_with_stdio(false); \
-    cin.tie(0);                       \
-    cout.tie(0)
+
+#define int long long
+#define debug(x) cout << "[" << #x << " is: " << x << "] " << endl;
+#define endl '\n'
 #define rep(i, n) for (int i = 0; i < n; i++)
 #define repi(i, j, n) for (int i = j; i < n; i++)
 #define rof(i, n) for (int i = n - 1; i >= 0; i--)
 #define roff(i, n, f) for (int i = n - 1; i >= f; i--)
 #define Hello cerr << "Hello!" << '\n'
+#define pb push_back
 typedef long long ll;
 typedef unsigned long long llu;
 typedef long double ld;
@@ -39,226 +35,184 @@ typedef vector<llu> vllu;
 typedef vector<vi> vvi;
 typedef pair<int, int> pii;
 typedef tuple<int, int, int> tiii;
+
 const int maxn = 1e5 + 5;
-using namespace std;
-#define pb push_back
+int mod = 1000000007;
+int INF = 1e18;
 
-const int N = 109;
-int n, m;
-vi nt[N][N], nt1[N][N];
-set<int> closure[N];
+vector<vector<vector<int>>> graph; //Node , Symbol, To
+vector<bool> vis;                  // Visited or not
+int states;                        //number of state
+string symbols;                    //array of symbols
 
-vi nta[N][N]; // stores the nfa table
-int dt[N][N]; // stores the dfa table with entries into ds
-vi ds[N];     // stores the label of dfa state (union of nfa states)
-int tot;      // total no. of states in dfa
-void PrintNFA()
+vector<vector<vector<int>>> NFA, DFA;
+//DFS Graph
+void dfs(int state, int symbol, int startstate, bool firstcall)
 {
-    cout << "\n NFA Table:\n";
+    //check if the first node (start state q0) is called or not
+    if (!firstcall)
+    {
+        vis[state] = true;
+        NFA[startstate][symbol].push_back(state);
+    }
+    //add all transition with epsilon
+    for (int i = 0; i < graph[state][symbol].size(); i++)
+        if (vis[graph[state][symbol][i]] == false)
+            dfs(graph[state][symbol][i], symbol, startstate, false);
+    //add all transition without the epsilon
+    for (int i = 0; i < graph[state][symbols.size() - 1].size(); i++)
+        if (vis[graph[state][symbols.size() - 1][i]] == false)
+            dfs(graph[state][symbols.size() - 1][i], symbol, startstate, false);
+}
+
+void print_NFA()
+{
+    cout << "NFA Table:\n";
     cout << "================================\n";
-    // NFA transition table
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < states; i++)
     {
-        cout << "Q" << i << "\t";
-        for (int j = 1; j <= m; j++)
-        {
-            cout << "[";
-            for (int ii : nt1[i][j])
-                cout << ii << "";
-            cout << "]\t";
-        }
-        cout << endl;
-    }
-    cout << endl;
-}
-void PrintDFA()
-{
-    cout << "\n DFA Table:\n";
-    cout << "===============================\n";
-    for (int i = 0; i < tot; i++)
-    {
-        cout << "Q" << i << "\t";
-        cout << "[";
-        for (int k = 0; k < ds[i].size(); k++)
-            cout << ds[i][k];
-        cout << "]\t";
 
-        for (int j = 0; j < m; j++)
+        for (int j = 0; j < symbols.size() - 1; j++)
         {
-            cout << "[";
-            for (int k = 0; k < ds[dt[i][j]].size(); k++)
-            {
-                cout << ds[dt[i][j]][k];
-            }
-            cout << "]\t";
+            int state = i;
+            cout << "(q" + to_string(state) + ", " + symbols[j] + "): ";
+            for (int k = 0; k < NFA[i][j].size(); k++)
+                cout << NFA[i][j][k] << ' ';
+            cout << endl;
         }
-        cout << endl;
     }
     cout << endl;
 }
 
-void ToNFA()
+void print_DFA()
 {
+    cout << "DFA Table:\n";
+    cout << "================================\n";
 
-    cin >> n; //Number. of states
-    cin >> m; //Number. of input symbols
-
-    // Enter Transition table
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < DFA.size(); i++)
     {
-        //Stata number [i]
-        for (int j = 0; j <= m; j++)
+        for (int j = 0; j < DFA[i].size(); j++)
         {
-            int temp;
-            cin >> temp; // Number of transitions
-            nt[i][j].resize(temp);
-            for (int k = 0; k < nt[i][j].size(); k++)
+            int state = i;
+            cout << "({q";
+            bool first = true;
+            for (int h = 0; h < NFA.size(); h++)
             {
-                cin >> nt[i][j][k];
-            }
-        }
-    }
 
-    // Finding epsilon closure for each state
-    for (int i = 0; i < n; i++)
-    {
-        queue<int> q;
-        vector<bool> vis(n, false);
-        q.push(i);
-        vis[i] = 1;
-        while (!q.empty())
-        {
-            int top = q.front();
-            q.pop();
-            for (int k = 0; k < nt[top][0].size(); k++)
-            {
-                int cur = nt[top][0][k];
-                if (vis[cur] == 0)
+                //left shift
+                if ((1ll << h) & i)
                 {
-                    vis[cur] = 1;
-                    q.push(cur);
+                    if (!first)
+                        cout << ' ';
+                    first = false;
+                    cout << h;
                 }
             }
-        }
-        for (int j = 0; j < n; j++)
-        {
-            if (vis[j] == 1)
-                closure[i].insert(j);
-        }
-    }
-
-    // Find epsilon's
-    for (int i = 0; i < n; i++)
-    {
-        for (int ii : closure[i])
-        {
-            for (int j = 1; j <= m; j++)
+            cout << "}, " << symbols[j] << "): ";
+            for (int k = 0; k < DFA[i][j].size(); k++)
             {
-                for (int k = 0; k < nt[ii][j].size(); k++)
+                cout << '{';
+                first = true;
+                for (int h = 0; h < NFA.size(); h++)
                 {
-                    int cur = nt[ii][j][k];
-                    for (int iii : closure[cur])
+                    if ((1ll << h) & DFA[i][j][k])
                     {
-                        nt1[i][j].push_back(iii);
+                        if (!first)
+                            cout << ' ';
+                        first = false;
+                        cout << h;
                     }
                 }
+                cout << '}';
             }
+            cout << endl;
         }
     }
-
-    PrintNFA();
 }
-void ToDFA()
-{
 
-    // set no of states ans symbols
-    n = 3, m = 2;
-    // input the count of transitions
-    for (int i = 0; i < n; i++)
-    {
-        for (int j = 0; j < m; j++)
-        {
-            int sz;
-            cin >> sz;
-            nta[i][j].resize(sz);
-        }
-    }
-
-    // input the actual nfa transition table
-    for (int i = 0; i < n; i++)
-    {
-        for (int j = 0; j < m; j++)
-        {
-            for (int k = 0; k < nta[i][j].size(); k++)
-            {
-                cin >> nta[i][j][k];
-            }
-        }
-    }
-
-    queue<int> q;
-
-    // add {0} as the initial state
-    vector<int> v;
-    v.pb(0);
-    q.push(0);
-    ds[tot++] = v;
-
-    // keep adding new states reachable from initial state
-    while (!q.empty())
-    {
-
-        int top = q.front();
-        q.pop();
-
-        for (int j = 0; j < m; j++)
-        {
-            vector<int> cur;
-            for (int i = 0; i < ds[top].size(); i++)
-            {
-                for (int k = 0; k < nta[ds[top][i]][j].size(); k++)
-                {
-                    cur.pb(nta[ds[top][i]][j][k]);
-                }
-            }
-
-            sort(cur.begin(), cur.end());
-            cur.resize(unique(cur.begin(), cur.end()) - cur.begin());
-
-            // check if this state is encountered before
-            int prev = -1;
-            for (int i = 0; i < tot; i++)
-            {
-                if (ds[i] == cur)
-                {
-                    prev = i;
-                    break;
-                }
-            }
-            if (prev == -1)
-            {
-                ds[tot] = cur;
-                q.push(tot);
-                dt[top][j] = tot;
-                tot++;
-            }
-            else
-            {
-                dt[top][j] = prev;
-            }
-        }
-    }
-
-    PrintDFA();
-}
-int main()
+int32_t main()
 {
     freopen("input.in", "r", stdin);
     freopen("output.out", "w", stdout);
-    // freopen("inputDFA.out", "w", stdout);
+    // ios::sync_with_stdio(false);
+    // cin.tie(nullptr);
 
-    ToNFA();
-    ToDFA();
+    cin >> states;  // number of state
+    cin >> symbols; // array of string symbols
+    symbols += '$'; //add epsilon to the symbols array and $ mean  epsilon
+    int edges;
+    cin >> edges; // input the transtion table for the e-nfa
+
+    graph.assign(states, vector<vector<int>>(symbols.size())); //the graph (Q,E)
+    while (edges--)
+    {
+        /*build the graph for e-nfa */
+        int from, to;
+        char symbol;
+        cin >> from >> to >> symbol; //input the transtion for all state
+        int symbolindex = -1;        // remove epsilon
+        for (int i = 0; i < symbols.size(); i++)
+        {
+            if (symbols[i] == symbol)
+            {
+                symbolindex = i;
+                break;
+            }
+        }
+
+        graph[from][symbolindex].push_back(to);
+    }
+    /*
+    After we building the e-nfa graph we bulid the nfa graph without the epsilon using epsilon closure.
+    Epsilon closure for a given state X is a set of states which can be reached from the states X with 
+    only (null) or ε moves including the state X itself
+    */
+    NFA.assign(states, vector<vector<int>>(symbols.size() - 1)); //NFA(Q*,E) without the epsilon
+    for (int i = 0; i < states; i++)
+    {
+        for (int j = 0; j < symbols.size() - 1; j++)
+        {
+            int state = i;
+            int symbolindex = j;
+            vis.assign(states, false);
+            dfs(state, symbolindex, state, true);
+        }
+    }
+
+    print_NFA();
+
+    /*
+    number of state is 2^n and the symbols will remain the same.
+    1ll:left shift.
+    */
+    DFA.assign(1ll << states, vector<vector<int>>(symbols.size() - 1)); //DFA(Q**,E)
+
+    for (int i = 0; i < DFA[0].size(); i++) //for Φ case
+        DFA[0][i].push_back(0);
+
+    for (int i = 1; i < DFA.size(); i++)
+    {
+        for (int j = 0; j < DFA[i].size(); j++)
+        {
+            set<int> result;
+            for (int k = 0; k < states; k++) //bit masking
+            {
+                int val = (1ll << k) & i;
+                if (val)
+                {
+                    for (int h = 0; h < NFA[k][j].size(); h++)
+                        result.insert(NFA[k][j][h]);
+                }
+            }
+
+            int x = 0;
+            for (auto it : result)
+                x += 1ll << it;
+
+            DFA[i][j].push_back(x);
+        }
+    }
+    print_DFA();
     fclose(stdout);
     return 0;
 }
